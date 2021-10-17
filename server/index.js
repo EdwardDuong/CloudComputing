@@ -93,9 +93,7 @@ function streamTweets(socket) {
 
 io.on("connection", async () => {
   console.log("Client connected...");
-
-  let currentRules;
-
+  let currentRules = 0;
   try {
     //   Get all stream rules
     currentRules = await getRules();
@@ -112,7 +110,7 @@ io.on("connection", async () => {
 
   const filteredStream = streamTweets(io);
 
-  let timeout = 0;
+  const timeout = 0;
   filteredStream.on("timeout", () => {
     // Reconnect on error
     console.warn("A connection error occurred. Reconnecting…");

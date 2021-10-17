@@ -35,25 +35,25 @@
     ></script>
 
     <script>
-      const tweetStream = document.getElementById('tweetStream')
-      const socket = io()
+      const tweetStream = document.getElementById("tweetStream");
+      const socket = io();
 
-      const tweets = []
+      const tweets = [];
 
-      socket.on('connect', () => {
-        console.log('Connected to server...')
-      })
+      socket.on("connect", () => {
+        console.log("Connected to server...");
+      });
 
-      socket.on('tweet', (tweet) => {
+      socket.on("tweet", (tweet) => {
         // console.log(tweet)
         const tweetData = {
           id: tweet.data.id,
           text: tweet.data.text,
           username: `@${tweet.includes.users[0].username}`,
-        }
+        };
 
-        const tweetEl = document.createElement('div')
-        tweetEl.className = 'card my-4'
+        const tweetEl = document.createElement("div");
+        tweetEl.className = "card my-4";
         tweetEl.innerHTML = `
             <div class="card-body">
                 <h5 class="card-title">${tweetData.text}</h5>
@@ -63,12 +63,12 @@
                     <i class="fab fa-twitter"></i> Go To Tweet    
                 </a>
             </div>
-        `
+        `;
 
-        tweetStream.appendChild(tweetEl)
+        tweetStream.appendChild(tweetEl);
 
         // setTimeout(() => tweetEl.remove(), 5000)
-      })
+      });
     </script>
   </body>
 </html>
