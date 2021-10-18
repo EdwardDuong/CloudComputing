@@ -44,12 +44,13 @@
         console.log("Connected to server...");
       });
 
-      socket.on("tweet", (tweet) => {
+      socket.on("tweet", ({ tweet, sentimentData }) => {
         // console.log(tweet)
         const tweetData = {
           id: tweet.data.id,
           text: tweet.data.text,
           username: `@${tweet.includes.users[0].username}`,
+          sentiment: sentimentData,
         };
 
         const tweetEl = document.createElement("div");
@@ -58,7 +59,7 @@
             <div class="card-body">
                 <h5 class="card-title">${tweetData.text}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">${tweetData.username}</h6>
-                
+                <<h6 class="card-subtitle mb-2 text-muted">${tweetData.sentimentData}</h6>
                 <a class="btn btn-primary mt-3" href="https://twitter.com/${tweetData.username}/status/${tweetData.id}">
                     <i class="fab fa-twitter"></i> Go To Tweet    
                 </a>
@@ -67,8 +68,9 @@
 
         tweetStream.appendChild(tweetEl);
 
-        // setTimeout(() => tweetEl.remove(), 5000)
+        setTimeout(() => tweetEl.remove(), 5000);
       });
+      socket.on("sentiment", sentimentdata);
     </script>
   </body>
 </html>

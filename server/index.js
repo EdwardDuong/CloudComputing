@@ -6,7 +6,9 @@ const needle = require("needle");
 const config = require("dotenv").config();
 const TOKEN = process.env.BEARER_TOKEN;
 const PORT = process.env.PORT || 3000;
-
+var Analyzer = require("natural").SentimentAnalyzer;
+var stemmer = require("natural").PorterStemmer;
+var analyzer = new Analyzer("English", stemmer, "afinn");
 const app = express();
 
 const server = http.createServer(app);
@@ -20,7 +22,7 @@ const rulesURL = "https://api.twitter.com/2/tweets/search/stream/rules";
 const streamURL =
   "https://api.twitter.com/2/tweets/search/stream?tweet.fields=public_metrics&expansions=author_id";
 
-const rules = [{ value: "coding" }];
+const rules = [{ value: "dog" }];
 
 // Get stream rules
 async function getRules() {
@@ -73,6 +75,10 @@ async function deleteRules(rules) {
   return response.body;
 }
 
+function sentimentAnalysic(tweet) {
+  return analyzer.getSentiment(tweet.data.text.split(" "));
+}
+
 function streamTweets(socket) {
   const stream = needle.get(streamURL, {
     headers: {
@@ -82,9 +88,12 @@ function streamTweets(socket) {
 
   stream.on("data", (data) => {
     try {
-      const json = JSON.parse(data);
-      console.log(json);
-      socket.emit("tweet", json);
+      const tweets = JSON.parse(data);
+      console.log(tweets);
+      const sentimentData = sentimentAnalysic(tweets);
+      console.log(sentimentData);
+      socket.emit("tweet", { tweet: tweets, sentimentData: sentimentData });
+      //socket.emit("sentiment", sentimentData);
     } catch (error) {}
   });
 
