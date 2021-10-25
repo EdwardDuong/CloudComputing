@@ -4,7 +4,9 @@ const express = require("express");
 const socketIo = require("socket.io");
 const needle = require("needle");
 const config = require("dotenv").config();
-const TOKEN = process.env.BEARER_TOKEN;
+//Couldn't get this to work. Hardcoding for now
+//const TOKEN = process.env.BEARER_TOKEN;
+const TOKEN = 'AAAAAAAAAAAAAAAAAAAAAJkVUwEAAAAAQXlpV00P1MHwv8jvlYAJ9dr9q7Y%3DkZMZD1kKSK37NzYZ1ZRNYXxGygamsSpmwDp6Ho7QZBNR72aRE5'
 const PORT = process.env.PORT || 3000;
 var Analyzer = require("natural").SentimentAnalyzer;
 var stemmer = require("natural").PorterStemmer;
@@ -36,9 +38,9 @@ async function getRules() {
 }
 
 // Set stream rules
-async function setRules() {
+async function setRules(term) {
   const data = {
-    add: rules,
+    add: [{value: term}],
   };
 
   const response = await needle("post", rulesURL, data, {
@@ -94,15 +96,15 @@ function streamTweets(socket) {
       console.log(sentimentData);
       socket.emit("tweet", { tweet: tweets, sentimentData: sentimentData });
       //socket.emit("sentiment", sentimentData);
-    } catch (error) {}
+    } catch (error) { }
   });
 
   return stream;
 }
 
-io.on("connection", async () => {
+io.on("connection", async (socket) => {
   console.log("Client connected...");
-  let currentRules = 0;
+  /*let currentRules = 0;
   try {
     //   Get all stream rules
     currentRules = await getRules();
@@ -128,7 +130,40 @@ io.on("connection", async () => {
       streamTweets(io);
     }, 2 ** timeout);
     streamTweets(io);
-  });
+  });*/
+  socket.on("search", async (term) => {
+    console.log("searched for " + term);
+  
+    let currentRules = 0;
+    try {
+      //   Get all stream rules
+      currentRules = await getRules();
+  
+      // Delete all stream rules
+      await deleteRules(currentRules);
+  
+      // Set rules based on array above
+      await setRules(term);
+    } catch (error) {
+      console.error(error);
+      process.exit(1);
+    }
+  
+    const filteredStream = streamTweets(io);
+  
+    const timeout = 0;
+    filteredStream.on("timeout", () => {
+      // Reconnect on error
+      console.warn("A connection error occurred. Reconnecting…");
+      setTimeout(() => {
+        timeout++;
+        streamTweets(io);
+      }, 2 ** timeout);
+      streamTweets(io);
+    });
+  })
 });
+
+
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));

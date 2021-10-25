@@ -23,9 +23,13 @@ function CardBody({ tweetData }) {
 
 function App() {
   document.title = "Real-Time Tweet Stream";
-  const [tweets, setTweets] = useState([
-  ]);
-  
+  const [tweets, setTweets] = useState([]);
+  const [search, setSearch] = useState("");
+
+  const handleChange = (e) => {
+    setSearch(e.target.value)
+  }
+
   useEffect(() => {
     async function connect() {
       socket = io('http://localhost:3000');
@@ -61,7 +65,15 @@ function App() {
           </Navbar.Brand>
         </Container>
       </Navbar>
+      
       <Container>
+      <input value={search} onChange={handleChange}/>
+      <Button onClick={()=> {
+        if (search.trim() != "") {
+          console.log("EMIT")
+          socket.emit("search", search);
+        }
+      }}>Search</Button>
         {tweets.map(tweet => <CardBody tweetData={tweet} />)}
       </Container>
     </div>
