@@ -6,8 +6,7 @@ const needle = require("needle");
 const config = require("dotenv").config();
 //Couldn't get this to work. Hardcoding for now
 //const TOKEN = process.env.BEARER_TOKEN;
-const TOKEN =
-  "AAAAAAAAAAAAAAAAAAAAAJkVUwEAAAAAQXlpV00P1MHwv8jvlYAJ9dr9q7Y%3DkZMZD1kKSK37NzYZ1ZRNYXxGygamsSpmwDp6Ho7QZBNR72aRE5";
+const TOKEN = 'AAAAAAAAAAAAAAAAAAAAAJkVUwEAAAAAQXlpV00P1MHwv8jvlYAJ9dr9q7Y%3DkZMZD1kKSK37NzYZ1ZRNYXxGygamsSpmwDp6Ho7QZBNR72aRE5'
 const PORT = process.env.PORT || 3000;
 var Analyzer = require("natural").SentimentAnalyzer;
 var stemmer = require("natural").PorterStemmer;
@@ -25,7 +24,7 @@ const rulesURL = "https://api.twitter.com/2/tweets/search/stream/rules";
 const streamURL =
   "https://api.twitter.com/2/tweets/search/stream?tweet.fields=public_metrics&expansions=author_id";
 
-const rules = [{ value: "dog lang:en" }];
+const rules = [{ value: "dog" }];
 
 // Get stream rules
 async function getRules() {
@@ -41,7 +40,7 @@ async function getRules() {
 // Set stream rules
 async function setRules(term) {
   const data = {
-    add: [{ value: term + " lang:en" }],
+    add: [{value: term}],
   };
 
   const response = await needle("post", rulesURL, data, {
@@ -97,7 +96,7 @@ function streamTweets(socket) {
       console.log(sentimentData);
       socket.emit("tweet", { tweet: tweets, sentimentData: sentimentData });
       //socket.emit("sentiment", sentimentData);
-    } catch (error) {}
+    } catch (error) { }
   });
 
   return stream;
@@ -134,24 +133,24 @@ io.on("connection", async (socket) => {
   });*/
   socket.on("search", async (term) => {
     console.log("searched for " + term);
-
+  
     let currentRules = 0;
     try {
       //   Get all stream rules
       currentRules = await getRules();
-
+  
       // Delete all stream rules
       await deleteRules(currentRules);
-
+  
       // Set rules based on array above
       await setRules(term);
     } catch (error) {
       console.error(error);
       process.exit(1);
     }
-
+  
     const filteredStream = streamTweets(io);
-
+  
     const timeout = 0;
     filteredStream.on("timeout", () => {
       // Reconnect on error
@@ -162,7 +161,9 @@ io.on("connection", async (socket) => {
       }, 2 ** timeout);
       streamTweets(io);
     });
-  });
+  })
 });
+
+
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
